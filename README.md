@@ -19,7 +19,7 @@
 ```text
 2026-FP-DEEP-DIVE/
 ├── .github/
-├── action-calc-data/     # 과제 디렉토리
+├── ch3-5/     # 과제 디렉토리
 │   ├── base-code.js      # 리팩토링 대상이 되는 원본 코드 (수정 금지)
 │   ├── pair-1/           # 각 페어별 작업 디렉토리
 │   │   ├── index.js        # 작업을 진행한 최종 코드
