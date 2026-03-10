@@ -54,13 +54,17 @@ npm install
 
 ## 🔄 작업 워크플로우 (Fork & PR)
 
-1. **Fork**: 본 스터디 원본 레포지토리를 각자의 GitHub 계정으로 Fork 합니다.
-
-2. **Clone**: fork 한 레포지토리를 로컬 환경으로 가져옵니다.
+1. **Clone**: 스터디 공통 레포지토리를 로컬 환경으로 가져옵니다.
 
    ```bash
    git clone https://github.com/[본인아이디]/2026-FP-DEEP-DIVE.git
    ```
+2. **Branch 생성 및 이동**: 본인 페어의 작업을 진행할 새로운 브랜치를 생성하고 이동합니다.
+
+   ```bash
+   git checkout -b ch3-5/pair-1
+   ```
+
 
 3. **작업 진행**: 해당 과제 디렉토리(e.g. `action-calc-data/`) 내의 `base-code.js` 코드를 본인 페어의 디렉토리(e.g. `pair-1/index.js`)로 복사한 뒤 리팩토링을 진행합니다.
 
