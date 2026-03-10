@@ -30,6 +30,28 @@
 └── README.md
 ```
 
+## 🚀 설치 및 실행 방법
+
+**1. 패키지 설치**
+
+```bash
+npm install
+```
+
+**2. 코드 실행 명령어**
+
+- 원본 코드 실행
+
+  ```bash
+  npm run start-base
+  ```
+
+- pair 1 결과물 실행
+
+  ```bash
+  npm run start-pair1
+  ```
+
 ## 🔄 작업 워크플로우 (Fork & PR)
 
 1. **Fork**: 본 스터디 원본 레포지토리를 각자의 GitHub 계정으로 Fork 합니다.
