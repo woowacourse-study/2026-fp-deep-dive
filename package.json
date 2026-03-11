@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start-pair1": "node action-calc-data/pair-1/index.js",
-    "start-pair2": "node action-calc-data/pair-2/index.js",
+    "start-pair2": "node ch3-5/pair-2/index.js",
     "start-pair3": "node action-calc-data/pair-3/index.js",
     "start-base": "node action-calc-data/base-code.js"
   },
