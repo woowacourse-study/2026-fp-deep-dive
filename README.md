@@ -70,9 +70,9 @@ npm install
 
    (❗️주의: 병합 충돌을 방지하기 위해 **본인 페어의 디렉토리 외부 파일은 절대 수정하지 않습니다**)
 
-4. **Commit & Push**: 코드 작성 및 해당 폴더의 `README.md` 작성이 완료되면 본인의 fork 레포지토리에 Push 합니다.
+4. **Commit & Push**: 코드 작성 및 해당 폴더의 `README.md` 작성이 완료되면 본인의 브랜치에 Push 합니다.
 
-5. **Pull Request**: 본인의 fork 레포지토리에서 원본 레포지토리의 `main` 브랜치로 PR을 생성합니다.
+5. **Pull Request**: 본인의 브랜치에서 `main` 브랜치로 PR을 생성합니다.
 
 6. **Code Review & Merge**: 각 조의 PR이 등록되면 다 함께 코드 리뷰를 진행하고, 아래의 승인 요건이 충족되면 `main`에 merge 합니다.
 
