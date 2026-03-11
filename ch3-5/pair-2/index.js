@@ -34,19 +34,20 @@ var gradeConfig = {
 // ────────────────────────────────────────────────────────────
 
 function registerMember(id, name, points) {
-  currentMember = {
+  currentMember = { // 데이터 or 계산(객체를 생성하는 거니까 계산인거 같다.)
     id: id,
     name: name,
     grade: "normal",
     points: points,
     totalUsageHours: 0,
   };
-  reservations = [];
-  console.log(name + "님이 등록되었습니다.");
+  reservations = []; // 데이터 or 전역 변수니까 액션인거 같기도 하다
+  console.log(name + "님이 등록되었습니다."); // 액션
 }
 
 // 누적 사용 시간에 따라 등급을 갱신한다
-function updateMemberGrade() {
+function updateMemberGrade() { // 계산으로 빼낼 수 있을 거 같다. hours 매개변수로 받고 grade를 반환하는 순수함수로 만들 수 있을거 같다.
+  // 객체의 프로퍼티를 전달하는 대신 currentMember 객체를 전달하는것도 괜찮은거 같다, 하지만 이유는 확실하지 않다.
   var hours = currentMember.totalUsageHours;
   if (hours >= gradeConfig.master.minHours) {
     currentMember.grade = "master";
@@ -63,35 +64,35 @@ function updateMemberGrade() {
 
 function makeReservation(roomId, date, startHour, duration, attendees) {
   if (!currentMember) {
-    console.log("로그인이 필요합니다.");
+    console.log("로그인이 필요합니다."); // 액션
     return null;
   }
 
   // 룸 존재 여부 확인
-  var room = null;
-  for (var i = 0; i < rooms.length; i++) {
+  var room = null; // 메서드로 대체 가능 rooms.find()
+  for (var i = 0; i < rooms.length; i++) { // 계산으로 뺄 수 있을 것 같음
     if (rooms[i].id === roomId) {
       room = rooms[i];
       break;
     }
   }
   if (!room) {
-    console.log("존재하지 않는 룸입니다: " + roomId);
+    console.log("존재하지 않는 룸입니다: " + roomId); // 액션 // 계산을 뺄 수 있음
     return null;
   }
 
   // 인원 초과 확인
-  if (attendees > room.capacity) {
+  if (attendees > room.capacity) { // 액션, 계산으로 뺼 수 있을 것 같음
     console.log("인원이 초과되었습니다. 최대 수용 인원: " + room.capacity + "명");
     return null;
   }
 
-  var fee = room.pricePerHour * duration;
-  var pointRate = gradeConfig[currentMember.grade].pointRate;
-  var earnedPoints = Math.floor((fee * pointRate) / 100);
+  var fee = room.pricePerHour * duration; // 계산으로
+  var pointRate = gradeConfig[currentMember.grade].pointRate; // 계산으로
+  var earnedPoints = Math.floor((fee * pointRate) / 100); // 계산으로
 
-  currentMember.points += earnedPoints;
-  currentMember.totalUsageHours += duration;
+  currentMember.points += earnedPoints; // 액션
+  currentMember.totalUsageHours += duration; 
   updateMemberGrade();
 
   var reservation = {
@@ -109,10 +110,10 @@ function makeReservation(roomId, date, startHour, duration, attendees) {
     status: "confirmed",
   };
 
-  reservations.push(reservation);
+  reservations.push(reservation); // 액션
 
-  console.log("예약 완료! [" + room.name + "] " + date + " " + startHour + "시 (" + duration + "시간)");
-  console.log("적립 포인트: +" + earnedPoints + "P  |  보유 포인트: " + currentMember.points + "P");
+  console.log("예약 완료! [" + room.name + "] " + date + " " + startHour + "시 (" + duration + "시간)"); // 액션
+  console.log("적립 포인트: +" + earnedPoints + "P  |  보유 포인트: " + currentMember.points + "P");   // 액션
   return reservation;
 }
 
@@ -120,13 +121,13 @@ function makeReservation(roomId, date, startHour, duration, attendees) {
 // 예약 취소 함수
 // ────────────────────────────────────────────────────────────
 
-function cancelReservation(reservationId, hoursUntilStart) {
+function cancelReservation(reservationId, hoursUntilStart) { // 큰 액션
   if (!currentMember) {
-    console.log("로그인이 필요합니다.");
+    console.log("로그인이 필요합니다."); // 출력때문에 액션이지만 계산으로 빼낼 수 있는 부분이 있다
     return;
   }
 
-  // 예약 찾기
+  // 예약 찾기, 계산으로 뺄 수 있을 것 같음, 직접 꺼내오지 않고 매개변수를 받아 계산으로 뺄 여지가 있다
   var target = null;
   for (var i = 0; i < reservations.length; i++) {
     if (reservations[i].id === reservationId) {
@@ -135,7 +136,7 @@ function cancelReservation(reservationId, hoursUntilStart) {
     }
   }
 
-  if (!target || target.status === "cancelled") {
+  if (!target || target.status === "cancelled") { // 계산으로 빼고 출력만 담당하는 함수를 만들어 처리 가능
     console.log("취소할 수 없는 예약입니다.");
     return;
   }
@@ -144,7 +145,7 @@ function cancelReservation(reservationId, hoursUntilStart) {
   // 24시간 이상 전: 패널티 없음
   // 24시간 미만:    적립 포인트의 20%
   // 1시간 미만:     적립 포인트 × 등급별 penaltyRate
-  var penaltyRate = gradeConfig[currentMember.grade].penaltyRate;
+  var penaltyRate = gradeConfig[currentMember.grade].penaltyRate; // 밑으로 계산으로 뺄 수 있을 것 같음
   var penalty = 0;
   if (hoursUntilStart < 1) {
     penalty = Math.floor((target.earnedPoints * penaltyRate) / 100);
@@ -159,8 +160,8 @@ function cancelReservation(reservationId, hoursUntilStart) {
 
   target.status = "cancelled";
 
-  console.log("예약이 취소되었습니다: " + reservationId);
-  console.log("포인트 회수: -" + target.earnedPoints + "P  |  패널티: -" + penalty + "P");
+  console.log("예약이 취소되었습니다: " + reservationId); // 액션
+  console.log("포인트 회수: -" + target.earnedPoints + "P  |  패널티: -" + penalty + "P"); 
   console.log("현재 포인트: " + currentMember.points + "P");
 }
 
@@ -169,21 +170,21 @@ function cancelReservation(reservationId, hoursUntilStart) {
 // ────────────────────────────────────────────────────────────
 
 function printMemberSummary() {
-  if (!currentMember) {
+  if (!currentMember) { // 액션인데 계산으로
     console.log("등록된 멤버가 없습니다.");
     return;
   }
 
-  var confirmed = [];
+  var confirmed = [];  // 액션
   var totalFee = 0;
-  for (var i = 0; i < reservations.length; i++) {
+  for (var i = 0; i < reservations.length; i++) { // 계산으로 분리 가능
     if (reservations[i].memberId === currentMember.id && reservations[i].status === "confirmed") {
       confirmed.push(reservations[i]);
       totalFee += reservations[i].fee;
     }
   }
 
-  console.log("========== 멤버 요약 ==========");
+  console.log("========== 멤버 요약 =========="); // 액션
   console.log("이름     : " + currentMember.name);
   console.log("등급     : " + currentMember.grade);
   console.log("포인트   : " + currentMember.points + "P");
