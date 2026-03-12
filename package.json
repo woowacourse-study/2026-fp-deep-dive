@@ -3,13 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start-pair1": "node action-calc-data/pair-1/index.js",
+    "test": "jest",
+    "test:pair1": "TARGET_FILE=ch3-5/pair-1/index.js jest",
+    "test:pair2": "TARGET_FILE=ch3-5/pair-2/index.js jest",
+    "test:pair3": "TARGET_FILE=ch3-5/pair-3/index.js jest",
+    "start-pair1": "node ch3-5/pair-1/index.js",
     "start-pair2": "node ch3-5/pair-2/index.js",
-    "start-pair3": "node action-calc-data/pair-3/index.js",
-    "start-base": "node action-calc-data/base-code.js"
+    "start-pair3": "node ch3-5/pair-3/index.js",
+    "start-base": "node ch3-5/base-code.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
 }
