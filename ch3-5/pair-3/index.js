@@ -10,7 +10,7 @@
  * - 예약 내역 요약 조회
  */
 
-import { createNewMember, getUpdatedMemberGrade } from "./member.js";
+import { createNewMember, getGradeFromHours } from "./member.js";
 import { rooms, gradeConfig } from "./constants.js";
 import { printLoginRequiredMessage, printRegisterResult } from "./outputView.js";
 
@@ -31,7 +31,32 @@ export function resetReservation() {
 }
 
 function getRoomById(roomId) {
-  return rooms.find(({ id }) => roomId == id);
+  const room = rooms.find(({ id }) => roomId == id);
+
+  // TODO: throw error 상위에서 에러 catch 처리
+  if (!room) printInvalidRoom();
+
+  return room;
+}
+
+function calcFee(room, duration) {
+  return room.pricePerHour * duration;
+}
+
+function calcEarnedPoints(grade, fee) {
+  const pointRate = gradeConfig[grade].pointRate;
+  const earnedPoints = Math.floor((fee * pointRate) / 100);
+  return earnedPoints;
+}
+
+function updateMembershipStatus(member, earnedPoints, duration) {
+  const result = { ...member };
+
+  result.points += earnedPoints;
+  result.totalUsageHours += duration;
+  result.grade = getGradeFromHours(result.totalUsageHours);
+
+  return result;
 }
 
 function makeReservation(roomId, date, startHour, duration, attendees) {
@@ -42,26 +67,17 @@ function makeReservation(roomId, date, startHour, duration, attendees) {
 
   const room = getRoomById(roomId);
 
-  if (!room) {
-    console.log("존재하지 않는 룸입니다: " + roomId); // Action 암묵적 출력
-    return null;
-  }
-
   // 인원 초과 확인
   if (attendees > room.capacity) {
-    console.log("인원이 초과되었습니다. 최대 수용 인원: " + room.capacity + "명"); // Action 암묵적 출력
+    printCapacityExcess(room.capacity);
     return null;
   }
 
-  var fee = room.pricePerHour * duration;
-  var pointRate = gradeConfig[currentMember.grade].pointRate; // Action 암묵적 입력
-  var earnedPoints = Math.floor((fee * pointRate) / 100);
+  const fee = calcFee(room, duration);
+  const earnedPoints = calcEarnedPoints(currentMember.grade, fee);
 
-  // Action 암묵적 출력
-  currentMember.points += earnedPoints;
-  currentMember.totalUsageHours += duration;
-
-  currentMember = getUpdatedMemberGrade(currentMember);
+  // 멤버십 정보(포인트, 사용시간, 등급) 업데이트
+  currentMember = updateMembershipStatus(currentMember, earnedPoints, duration);
 
   // Action 암묵적 입력
   var reservation = {
@@ -133,7 +149,7 @@ function cancelReservation(reservationId, hoursUntilStart) {
   currentMember.points -= target.earnedPoints;
   currentMember.points -= penalty;
   currentMember.totalUsageHours -= target.duration;
-  currentMember = getUpdatedMemberGrade(currentMember);
+  currentMember.grade = getGradeFromHours(currentMember.totalUsageHours);
 
   target.status = "cancelled";
 
