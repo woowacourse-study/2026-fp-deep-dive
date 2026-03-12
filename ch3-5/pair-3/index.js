@@ -10,9 +10,9 @@
  * - 예약 내역 요약 조회
  */
 
-import { registerMember, updateMemberGrade } from "./member.js";
+import { createNewMember, getUpdatedMemberGrade } from "./member.js";
 import { rooms, gradeConfig } from "./constants.js";
-import { resetReservation } from "./reservation.js";
+import { printLoginRequiredMessage, printRegisterResult } from "./outputView.js";
 
 // ────────────────────────────────────────────────────────────
 // 전역 상태
@@ -30,22 +30,18 @@ export function resetReservation() {
   reservations = []; // Action 암묵적 출력
 }
 
+function getRoomById(roomId) {
+  return rooms.find(({ id }) => roomId == id);
+}
+
 function makeReservation(roomId, date, startHour, duration, attendees) {
   if (!currentMember) {
-    // Action 암묵적 입력
-    console.log("로그인이 필요합니다."); // Action 암묵적 출력
+    printLoginRequiredMessage();
     return null;
   }
 
-  // 룸 존재 여부 확인
-  var room = null;
-  // Action 암묵적 입력
-  for (var i = 0; i < rooms.length; i++) {
-    if (rooms[i].id === roomId) {
-      room = rooms[i]; // Action 암묵적 입력
-      break;
-    }
-  }
+  const room = getRoomById(roomId);
+
   if (!room) {
     console.log("존재하지 않는 룸입니다: " + roomId); // Action 암묵적 출력
     return null;
@@ -65,7 +61,7 @@ function makeReservation(roomId, date, startHour, duration, attendees) {
   currentMember.points += earnedPoints;
   currentMember.totalUsageHours += duration;
 
-  updateMemberGrade();
+  currentMember = getUpdatedMemberGrade(currentMember);
 
   // Action 암묵적 입력
   var reservation = {
@@ -137,7 +133,7 @@ function cancelReservation(reservationId, hoursUntilStart) {
   currentMember.points -= target.earnedPoints;
   currentMember.points -= penalty;
   currentMember.totalUsageHours -= target.duration;
-  updateMemberGrade();
+  currentMember = getUpdatedMemberGrade(currentMember);
 
   target.status = "cancelled";
 
@@ -202,7 +198,13 @@ function printMemberSummary() {
 // ────────────────────────────────────────────────────────────
 
 resetReservation();
-registerMember("M001", "조앤", 100);
+
+// 맴버 등록
+const newMember = createNewMember("M001", "조앤", 100);
+printRegisterResult(newMember.name);
+currentMember = newMember;
+
+console.log(currentMember);
 
 var res1 = makeReservation("ROOM-A", "2026-03-15", 10, 2, 3);
 var res2 = makeReservation("ROOM-B", "2026-03-16", 14, 2, 6);
