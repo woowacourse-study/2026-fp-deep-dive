@@ -10,17 +10,25 @@
  * - 예약 내역 요약 조회
  */
 
-import { createNewMember, getGradeFromHours } from "./member.js";
+import { createNewMember, getGradeFromHours, updateMembershipStatus } from "./member.js";
 import { gradeConfig } from "./constants.js";
-import { printPointResult, printRegisterResult, printReservationResult } from "./outputView.js";
+import {
+  printConfirmedReservation,
+  printInvalidMember,
+  printMemberSummary,
+  printPointResult,
+  printRegisterResult,
+  printReservationCancelResult,
+  printReservationResult,
+} from "./outputView.js";
 import { makeReservation } from "./reservation.js";
 
 // ────────────────────────────────────────────────────────────
 // 전역 상태
 // ────────────────────────────────────────────────────────────
 
-let currentMember = null; // Action
-let reservations = []; // Action
+let currentMember = null;
+let reservations = [];
 
 // ────────────────────────────────────────────────────────────
 // 예약 취소 함수
@@ -66,68 +74,43 @@ function cancelReservation(reservationId, hoursUntilStart) {
 
   const penalty = calcPenalty(hoursUntilStart, targetReservation);
 
-  // Action 암묵적 출력
-  currentMember.points -= targetReservation.earnedPoints;
-  currentMember.points -= penalty;
-  currentMember.totalUsageHours -= targetReservation.duration;
-  currentMember.grade = getGradeFromHours(currentMember.totalUsageHours);
+  currentMember = updateMembershipStatus(
+    currentMember,
+    targetReservation.earnedPoints - penalty,
+    targetReservation.duration,
+  );
 
   targetReservation.status = "cancelled";
 
-  // Action 암묵적 출력
-  console.log("예약이 취소되었습니다: " + reservationId);
-  console.log("포인트 회수: -" + targetReservation.earnedPoints + "P  |  패널티: -" + penalty + "P");
-  console.log("현재 포인트: " + currentMember.points + "P");
+  return { earnedPoints: targetReservation.earnedPoints, penalty, points: currentMember.points };
 }
 
 // ────────────────────────────────────────────────────────────
 // 조회 및 요약 함수
 // ────────────────────────────────────────────────────────────
 
-function printMemberSummary() {
-  // Action 암묵적 입력
+function getConfirmedReservation() {
+  const confirmed = [];
+  let totalFee = 0;
+
+  reservations.forEach((reservation) => {
+    if (reservation.memberId === currentMember.id && reservation.status === "confirmed") {
+      confirmed.push(reservation);
+      totalFee += reservation.fee;
+    }
+  });
+
+  return { confirmed, totalFee };
+}
+
+function printTotalResult({ confirmed, totalFee }) {
   if (!currentMember) {
-    console.log("등록된 멤버가 없습니다.");
+    printInvalidMember();
     return;
   }
 
-  var confirmed = [];
-  var totalFee = 0;
-  // Action 암묵적 입력
-  for (var i = 0; i < reservations.length; i++) {
-    if (reservations[i].memberId === currentMember.id && reservations[i].status === "confirmed") {
-      confirmed.push(reservations[i]);
-      totalFee += reservations[i].fee;
-    }
-  }
-
-  // Action 암묵적 출력
-  console.log("========== 멤버 요약 ==========");
-  console.log("이름     : " + currentMember.name);
-  console.log("등급     : " + currentMember.grade);
-  console.log("포인트   : " + currentMember.points + "P");
-  console.log("누적사용 : " + currentMember.totalUsageHours + "시간  /  " + totalFee.toLocaleString() + "원");
-  console.log("확정예약 : " + confirmed.length + "건");
-
-  for (var j = 0; j < confirmed.length; j++) {
-    var r = confirmed[j];
-
-    // Action 암묵적 출력
-    console.log(
-      "  [" +
-        r.roomName +
-        "] " +
-        r.date +
-        "  " +
-        r.startHour +
-        "시 (" +
-        r.duration +
-        "시간)  " +
-        r.fee.toLocaleString() +
-        "원",
-    );
-  }
-  console.log("===============================");
+  printMemberSummary(currentMember, confirmed, totalFee);
+  printConfirmedReservation(confirmed);
 }
 
 // ────────────────────────────────────────────────────────────
@@ -149,8 +132,11 @@ reservations.push(res2);
 printReservationResult(res2);
 printPointResult(res2.earnedPoints, currentMember.points);
 
-printMemberSummary();
+const confirmedReservationBeforeCancel = getConfirmedReservation();
+printTotalResult(confirmedReservationBeforeCancel);
 
-cancelReservation(res1.id, 0.5); // 30분 전 취소 → 패널티 발생
+const { earnedPoints, penalty, points } = cancelReservation(res2.id, 0.5); // 30분 전 취소 → 패널티 발생
+printReservationCancelResult(res2.id, earnedPoints, penalty, points);
 
-printMemberSummary();
+const confirmedReservationAfterCancel = getConfirmedReservation();
+printTotalResult(confirmedReservationAfterCancel);

@@ -22,3 +22,13 @@ export function getGradeFromHours(hours) {
 
   return "normal";
 }
+
+export function updateMembershipStatus(member, earnedPoints, duration) {
+  const result = { ...member };
+
+  result.points += earnedPoints;
+  result.totalUsageHours += duration;
+  result.grade = getGradeFromHours(result.totalUsageHours);
+
+  return result;
+}
