@@ -42,10 +42,6 @@ export function printPointResult(earnedPoints, points) {
   console.log("적립 포인트: +" + earnedPoints + "P  |  보유 포인트: " + points + "P");
 }
 
-export function printInvalidMember() {
-  console.log("등록된 멤버가 없습니다.");
-}
-
 export function printMemberSummary(member, confirmed, totalFee) {
   console.log("========== 멤버 요약 ==========");
   console.log("이름     : " + member.name);
@@ -74,4 +70,9 @@ export function printConfirmedReservation(confirmed) {
     );
   }
   console.log("===============================");
+}
+
+export function printTotalResult({ member, confirmed, totalFee }) {
+  printMemberSummary(member, confirmed, totalFee);
+  printConfirmedReservation(confirmed);
 }

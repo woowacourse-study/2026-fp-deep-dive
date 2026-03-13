@@ -59,3 +59,72 @@ export function calcEarnedPoints(grade, fee) {
   const earnedPoints = Math.floor((fee * pointRate) / 100);
   return earnedPoints;
 }
+
+// ────────────────────────────────────────────────────────────
+// 예약 취소 함수
+// ────────────────────────────────────────────────────────────
+
+export function findTargetReservation(reservations, reservationId) {
+  const reservation = reservations.find((res) => res.id === reservationId);
+
+  if (!reservation || reservation.status === "cancelled") {
+    printInvalidReservationCancel();
+    return;
+  }
+
+  return reservation;
+}
+
+export function calcPenalty(member, hoursUntilStart, reservation) {
+  const penaltyRate = gradeConfig[member.grade].penaltyRate;
+
+  if (hoursUntilStart < 1) {
+    return Math.floor((reservation.earnedPoints * penaltyRate) / 100);
+  }
+  if (hoursUntilStart < 24) {
+    return Math.floor((reservation.earnedPoints * 20) / 100);
+  }
+
+  return 0;
+}
+
+export function cancelReservation(member, reservations, reservationId, hoursUntilStart) {
+  if (!member) {
+    printLoginRequiredMessage();
+    return;
+  }
+
+  // 예약 찾기
+  const targetReservation = findTargetReservation(reservations, reservationId);
+
+  // 취소 시점에 따른 패널티 계산
+  // 24시간 이상 전: 패널티 없음
+  // 24시간 미만:    적립 포인트의 20%
+  // 1시간 미만:     적립 포인트 × 등급별 penaltyRate
+
+  const penalty = calcPenalty(member, hoursUntilStart, targetReservation);
+
+  member = updateMembershipStatus(member, targetReservation.earnedPoints - penalty, targetReservation.duration);
+
+  targetReservation.status = "cancelled";
+
+  return { earnedPoints: targetReservation.earnedPoints, penalty, points: member.points };
+}
+
+// ────────────────────────────────────────────────────────────
+// 조회 및 요약 함수
+// ────────────────────────────────────────────────────────────
+
+export function getConfirmedReservation(reservations, member) {
+  const confirmed = [];
+  let totalFee = 0;
+
+  reservations.forEach((reservation) => {
+    if (reservation.memberId === member.id && reservation.status === "confirmed") {
+      confirmed.push(reservation);
+      totalFee += reservation.fee;
+    }
+  });
+
+  return { confirmed, totalFee };
+}

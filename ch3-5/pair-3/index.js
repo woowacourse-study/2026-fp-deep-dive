@@ -10,18 +10,15 @@
  * - 예약 내역 요약 조회
  */
 
-import { createNewMember, getGradeFromHours, updateMembershipStatus } from "./member.js";
-import { gradeConfig } from "./constants.js";
+import { createNewMember } from "./member.js";
 import {
-  printConfirmedReservation,
-  printInvalidMember,
-  printMemberSummary,
   printPointResult,
   printRegisterResult,
   printReservationCancelResult,
   printReservationResult,
+  printTotalResult,
 } from "./outputView.js";
-import { makeReservation } from "./reservation.js";
+import { makeReservation, getConfirmedReservation, cancelReservation } from "./reservation.js";
 
 // ────────────────────────────────────────────────────────────
 // 전역 상태
@@ -29,89 +26,6 @@ import { makeReservation } from "./reservation.js";
 
 let currentMember = null;
 let reservations = [];
-
-// ────────────────────────────────────────────────────────────
-// 예약 취소 함수
-// ────────────────────────────────────────────────────────────
-
-function findTargetReservation(reservationId) {
-  const reservation = reservations.find((res) => res.id === reservationId);
-
-  if (!reservation || reservation.status === "cancelled") {
-    printInvalidReservationCancel();
-    return;
-  }
-
-  return reservation;
-}
-
-function calcPenalty(hoursUntilStart, reservation) {
-  const penaltyRate = gradeConfig[currentMember.grade].penaltyRate;
-
-  if (hoursUntilStart < 1) {
-    return Math.floor((reservation.earnedPoints * penaltyRate) / 100);
-  }
-  if (hoursUntilStart < 24) {
-    return Math.floor((reservation.earnedPoints * 20) / 100);
-  }
-
-  return 0;
-}
-
-function cancelReservation(reservationId, hoursUntilStart) {
-  if (!currentMember) {
-    printLoginRequiredMessage();
-    return;
-  }
-
-  // 예약 찾기
-  const targetReservation = findTargetReservation(reservationId);
-
-  // 취소 시점에 따른 패널티 계산
-  // 24시간 이상 전: 패널티 없음
-  // 24시간 미만:    적립 포인트의 20%
-  // 1시간 미만:     적립 포인트 × 등급별 penaltyRate
-
-  const penalty = calcPenalty(hoursUntilStart, targetReservation);
-
-  currentMember = updateMembershipStatus(
-    currentMember,
-    targetReservation.earnedPoints - penalty,
-    targetReservation.duration,
-  );
-
-  targetReservation.status = "cancelled";
-
-  return { earnedPoints: targetReservation.earnedPoints, penalty, points: currentMember.points };
-}
-
-// ────────────────────────────────────────────────────────────
-// 조회 및 요약 함수
-// ────────────────────────────────────────────────────────────
-
-function getConfirmedReservation() {
-  const confirmed = [];
-  let totalFee = 0;
-
-  reservations.forEach((reservation) => {
-    if (reservation.memberId === currentMember.id && reservation.status === "confirmed") {
-      confirmed.push(reservation);
-      totalFee += reservation.fee;
-    }
-  });
-
-  return { confirmed, totalFee };
-}
-
-function printTotalResult({ confirmed, totalFee }) {
-  if (!currentMember) {
-    printInvalidMember();
-    return;
-  }
-
-  printMemberSummary(currentMember, confirmed, totalFee);
-  printConfirmedReservation(confirmed);
-}
 
 // ────────────────────────────────────────────────────────────
 // 실행 예시
@@ -132,11 +46,11 @@ reservations.push(res2);
 printReservationResult(res2);
 printPointResult(res2.earnedPoints, currentMember.points);
 
-const confirmedReservationBeforeCancel = getConfirmedReservation();
-printTotalResult(confirmedReservationBeforeCancel);
+const confirmedReservationBeforeCancel = getConfirmedReservation(reservations, currentMember);
+printTotalResult({ member: currentMember, ...confirmedReservationBeforeCancel });
 
-const { earnedPoints, penalty, points } = cancelReservation(res2.id, 0.5); // 30분 전 취소 → 패널티 발생
+const { earnedPoints, penalty, points } = cancelReservation(currentMember, reservations, res2.id, 0.5); // 30분 전 취소 → 패널티 발생
 printReservationCancelResult(res2.id, earnedPoints, penalty, points);
 
-const confirmedReservationAfterCancel = getConfirmedReservation();
-printTotalResult(confirmedReservationAfterCancel);
+const confirmedReservationAfterCancel = getConfirmedReservation(reservations, currentMember);
+printTotalResult({ member: currentMember, ...confirmedReservationAfterCancel });
