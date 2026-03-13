@@ -42,7 +42,7 @@ function registerMember(id, name, points) {
     totalUsageHours: 0,
   };
   reservations = [];
-  console.log(name + "님이 등록되었습니다.");
+  console.log(n이ame + "님이 등록되었습니다.");
 }
 
 // 누적 사용 시간에 따라 등급을 갱신한다
@@ -95,7 +95,7 @@ function makeReservation(roomId, date, startHour, duration, attendees) {
   updateMemberGrade();
 
   var reservation = {
-    id: "RES-" + Date.now(),
+    id: "RES-" + Math.random(),
     memberId: currentMember.id,
     memberName: currentMember.name,
     roomId: roomId,
