@@ -2,14 +2,11 @@ import { gradeConfig, rooms } from "./constants.js";
 import { updateMembershipStatus } from "./member.js";
 import { printInvalidRoom } from "./outputView.js";
 
-// TODO: 분리 필요
+// ────────────────────────────────────────────────────────────
+// 예약 관련 함수
+// ────────────────────────────────────────────────────────────
 export function makeReservation(roomId, date, startHour, duration, attendees, member) {
   let currentMember = { ...member };
-
-  if (!currentMember) {
-    printLoginRequiredMessage();
-    return null;
-  }
 
   const room = getRoomById(roomId);
 
@@ -19,13 +16,13 @@ export function makeReservation(roomId, date, startHour, duration, attendees, me
     return null;
   }
 
-  const fee = calcFee(room, duration);
-  const earnedPoints = calcEarnedPoints(currentMember.grade, fee);
+  // 포인트 계산
+  const earnedPoints = calcEarnedPoints(currentMember.grade, calcFee(room, duration));
 
   // 멤버십 정보(포인트, 사용시간, 등급) 업데이트
   currentMember = updateMembershipStatus(currentMember, earnedPoints, duration);
 
-  return {
+  const reservation = {
     id: "RES-" + Math.random(),
     memberId: currentMember.id,
     memberName: currentMember.name,
@@ -35,10 +32,12 @@ export function makeReservation(roomId, date, startHour, duration, attendees, me
     startHour: startHour,
     duration: duration,
     attendees: attendees,
-    fee: fee,
+    fee: calcFee(room, duration),
     earnedPoints: earnedPoints,
     status: "confirmed",
   };
+
+  return { currentMember, reservation };
 }
 
 export function getRoomById(roomId) {
@@ -104,11 +103,15 @@ export function cancelReservation(member, reservations, reservationId, hoursUnti
 
   const penalty = calcPenalty(member, hoursUntilStart, targetReservation);
 
-  member = updateMembershipStatus(member, targetReservation.earnedPoints - penalty, targetReservation.duration);
+  const currentMember = updateMembershipStatus(
+    member,
+    targetReservation.earnedPoints - penalty,
+    targetReservation.duration,
+  );
 
   targetReservation.status = "cancelled";
 
-  return { earnedPoints: targetReservation.earnedPoints, penalty, points: member.points };
+  return { currentMember, earnedPoints: targetReservation.earnedPoints, penalty, points: member.points };
 }
 
 // ────────────────────────────────────────────────────────────

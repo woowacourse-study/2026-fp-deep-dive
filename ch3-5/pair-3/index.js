@@ -24,7 +24,6 @@ import { makeReservation, getConfirmedReservation, cancelReservation } from "./r
 // 전역 상태
 // ────────────────────────────────────────────────────────────
 
-let currentMember = null;
 let reservations = [];
 
 // ────────────────────────────────────────────────────────────
@@ -34,23 +33,41 @@ let reservations = [];
 // 맴버 등록
 const newMember = createNewMember("M001", "조앤", 100);
 printRegisterResult(newMember.name);
-currentMember = newMember;
 
-var res1 = makeReservation("ROOM-A", "2026-03-15", 10, 2, 3, currentMember);
+const { currentMember: memberAfterReservation1, reservation: res1 } = makeReservation(
+  "ROOM-A",
+  "2026-03-15",
+  10,
+  2,
+  3,
+  newMember,
+);
 reservations.push(res1);
 printReservationResult(res1);
-printPointResult(res1.earnedPoints, currentMember.points);
+printPointResult(res1.earnedPoints, memberAfterReservation1.points);
 
-var res2 = makeReservation("ROOM-B", "2026-03-16", 14, 2, 6, currentMember);
+const { currentMember: memberAfterReservation2, reservation: res2 } = makeReservation(
+  "ROOM-B",
+  "2026-03-16",
+  14,
+  2,
+  6,
+  memberAfterReservation1,
+);
 reservations.push(res2);
 printReservationResult(res2);
-printPointResult(res2.earnedPoints, currentMember.points);
+printPointResult(res2.earnedPoints, memberAfterReservation2.points);
 
-const confirmedReservationBeforeCancel = getConfirmedReservation(reservations, currentMember);
-printTotalResult({ member: currentMember, ...confirmedReservationBeforeCancel });
+const confirmedReservationBeforeCancel = getConfirmedReservation(reservations, memberAfterReservation2);
+printTotalResult({ member: memberAfterReservation2, ...confirmedReservationBeforeCancel });
 
-const { earnedPoints, penalty, points } = cancelReservation(currentMember, reservations, res2.id, 0.5); // 30분 전 취소 → 패널티 발생
+const {
+  currentMember: updatedMember,
+  earnedPoints,
+  penalty,
+  points,
+} = cancelReservation(memberAfterReservation2, reservations, res2.id, 0.5); // 30분 전 취소 → 패널티 발생
 printReservationCancelResult(res2.id, earnedPoints, penalty, points);
 
-const confirmedReservationAfterCancel = getConfirmedReservation(reservations, currentMember);
-printTotalResult({ member: currentMember, ...confirmedReservationAfterCancel });
+const confirmedReservationAfterCancel = getConfirmedReservation(reservations, updatedMember);
+printTotalResult({ member: updatedMember, ...confirmedReservationAfterCancel });
