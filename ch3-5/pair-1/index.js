@@ -1,8 +1,6 @@
 /**
  * 📚 우테코 스터디룸 예약 시스템
  *
- * ⚠️  이 파일은 리팩토링 대상 원본 코드입니다. 수정하지 마세요.
- *
  * [주요 기능]
  * - 멤버 등록 및 등급 관리
  * - 스터디룸 예약
@@ -25,6 +23,36 @@ function updateValueAtKey(originalObject, key, value) {
   const newObject = { ...originalObject };
   newObject[key] = value;
   return newObject;
+}
+
+function addElemToArray(array, elem) {
+  const newArray = [...array];
+  newArray.push(elem);
+  return newArray;
+}
+
+function findById(array, id) {
+  for (let i = 0; i < array.length; i++) {
+    if (array[i].id === id) {
+      return array[i];
+    }
+  }
+  return null;
+}
+
+function filterByKey(array, key, targetValue) {
+  let resultArray = [];
+
+  for (let i = 0; i < array.length; i++) {
+    if (array[i][key] === targetValue) {
+      resultArray.push(array[i]);
+    }
+  }
+  return resultArray;
+}
+
+function calculatePercentage(amount, rate) {
+  return Math.floor((amount * rate) / 100);
 }
 
 // ────────────────────────────────────────────────────────────
@@ -100,15 +128,6 @@ function isMemberExist(member) {
   return !member;
 }
 
-function findById(array, id) {
-  for (let i = 0; i < array.length; i++) {
-    if (array[i].id === id) {
-      return array[i];
-    }
-  }
-  return null;
-}
-
 function calculateFee(pricePerHour, duration) {
   return pricePerHour * duration;
 }
@@ -117,18 +136,36 @@ function getPointRate(gradeConfig, grade) {
   return getValueByKey(gradeConfig, grade, "pointRate");
 }
 
-function calculatePercontage(amount, rate) {
-  return Math.floor((amount * rate) / 100);
-}
-
 function calculateEarnedPoints(fee, gradeConfig, grade) {
   const pointRate = getPointRate(gradeConfig, grade);
-  return calculatePercontage(fee, pointRate);
+  return calculatePercentage(fee, pointRate);
 }
 
 // 인원이 수용량을 초과하는지 판단
 function isOverCapacity(attendees, capacity) {
   return attendees > capacity;
+}
+
+function createReservation(params) {
+  const { memberId, memberName, roomId, roomName, date, startHour, duration, attendees, fee, earnedPoints } = params;
+
+  const id = `RES-${Date.now()}`;
+  const status = "confirmed";
+
+  return {
+    id,
+    memberId,
+    memberName,
+    roomId,
+    roomName,
+    date,
+    startHour,
+    duration,
+    attendees,
+    fee,
+    earnedPoints,
+    status,
+  };
 }
 
 function makeReservation(roomId, date, startHour, duration, attendees) {
@@ -162,8 +199,7 @@ function makeReservation(roomId, date, startHour, duration, attendees) {
   //누적된 시간으로 등급 업데이트
   currentMember = getUpdatedGradeMemberInfo(currentMember, gradeConfig);
 
-  let reservation = {
-    id: "RES-" + Date.now(),
+  const newReservation = createReservation({
     memberId: currentMember.id,
     memberName: currentMember.name,
     roomId: roomId,
@@ -174,19 +210,34 @@ function makeReservation(roomId, date, startHour, duration, attendees) {
     attendees: attendees,
     fee: fee,
     earnedPoints: earnedPoints,
-    status: "confirmed",
-  };
+  });
 
-  reservations.push(reservation);
+  reservations = addElemToArray(reservations, newReservation);
 
-  console.log("예약 완료! [" + roomInfo.name + "] " + date + " " + startHour + "시 (" + duration + "시간)");
-  console.log("적립 포인트: +" + earnedPoints + "P  |  보유 포인트: " + currentMember.points + "P");
-  return reservation;
+  console.log(`예약 완료! [${roomInfo.name}] ${date} ${startHour}시 (${duration}시간)`);
+  console.log(`적립 포인트: +${earnedPoints}P  |  보유 포인트: ${currentMember.points}P`);
+
+  return newReservation;
 }
 
 // ────────────────────────────────────────────────────────────
 // 예약 취소 함수
 // ────────────────────────────────────────────────────────────
+
+function isCancellabe(reservation) {
+  return reservation !== null && reservation.status !== "cancelled";
+}
+
+function calculatePenaltyPercent(penaltyRate, hoursUntilStart) {
+  if (hoursUntilStart < 1) return penaltyRate;
+  if (hoursUntilStart < 24) return 20;
+  return 0;
+}
+
+function calculatePenaltyPoint(earnedPoints, penaltyRate, hoursUntilStart) {
+  const penaltyPercent = calculatePenaltyPercent(penaltyRate, hoursUntilStart);
+  return calculatePercentage(earnedPoints, penaltyPercent);
+}
 
 function cancelReservation(reservationId, hoursUntilStart) {
   if (!currentMember) {
@@ -195,15 +246,8 @@ function cancelReservation(reservationId, hoursUntilStart) {
   }
 
   // 예약 찾기
-  let target = null;
-  for (let i = 0; i < reservations.length; i++) {
-    if (reservations[i].id === reservationId) {
-      target = reservations[i];
-      break;
-    }
-  }
-
-  if (!target || target.status === "cancelled") {
+  let targetReservation = findById(reservations, reservationId);
+  if (!isCancellabe(targetReservation)) {
     console.log("취소할 수 없는 예약입니다.");
     return;
   }
@@ -212,29 +256,43 @@ function cancelReservation(reservationId, hoursUntilStart) {
   // 24시간 이상 전: 패널티 없음
   // 24시간 미만:    적립 포인트의 20%
   // 1시간 미만:     적립 포인트 × 등급별 penaltyRate
-  let penaltyRate = gradeConfig[currentMember.grade].penaltyRate;
-  let penalty = 0;
-  if (hoursUntilStart < 1) {
-    penalty = Math.floor((target.earnedPoints * penaltyRate) / 100);
-  } else if (hoursUntilStart < 24) {
-    penalty = Math.floor((target.earnedPoints * 20) / 100);
-  }
+  const penaltyRate = getValueByKey(gradeConfig, currentMember.grade, "penaltyRate");
 
-  currentMember.points -= target.earnedPoints;
-  currentMember.points -= penalty;
-  currentMember.totalUsageHours -= target.duration;
-  updateMemberGrade();
+  const penalty = calculatePenaltyPoint(targetReservation.earnedPoints, penaltyRate, hoursUntilStart); //패널티 포인트를 계산해서 리턴한다
 
-  target.status = "cancelled";
+  //updateAmountAtKey(originalObject, key, amount)
 
-  console.log("예약이 취소되었습니다: " + reservationId);
-  console.log("포인트 회수: -" + target.earnedPoints + "P  |  패널티: -" + penalty + "P");
-  console.log("현재 포인트: " + currentMember.points + "P");
+  currentMember = updateAmountAtKey(currentMember, "points", -1 * targetReservation.earnedPoints);
+  currentMember = updateAmountAtKey(currentMember, "points", -1 * penalty);
+  currentMember = updateAmountAtKey(currentMember, "totalUsageHours", -1 * targetReservation.duration);
+
+  currentMember = getUpdatedGradeMemberInfo(currentMember, gradeConfig);
+
+  targetReservation.status = "cancelled";
+
+  console.log(`예약이 취소되었습니다: ${reservationId}`);
+  console.log(`포인트 회수: -${targetReservation.earnedPoints}P  |  패널티: -${penalty}P`);
+  console.log(`현재 포인트: ${currentMember.points}P`);
 }
 
 // ────────────────────────────────────────────────────────────
 // 조회 및 요약 함수
 // ────────────────────────────────────────────────────────────
+
+function calculateTotalFee(reservations) {
+  let total = 0;
+  for (let i = 0; i < reservations.length; i++) {
+    total += reservations[i].fee;
+  }
+  return total;
+}
+
+function getConfirmedReservations(reservations, memberId) {
+  let targetMemberRervations = filterByKey(reservations, "memberId", memberId);
+  let confirmedReservations = filterByKey(targetMemberRervations, "status", "confirmed");
+
+  return confirmedReservations;
+}
 
 function printMemberSummary() {
   if (!currentMember) {
@@ -242,35 +300,20 @@ function printMemberSummary() {
     return;
   }
 
-  let confirmed = [];
-  let totalFee = 0;
-  for (let i = 0; i < reservations.length; i++) {
-    if (reservations[i].memberId === currentMember.id && reservations[i].status === "confirmed") {
-      confirmed.push(reservations[i]);
-      totalFee += reservations[i].fee;
-    }
-  }
+  const confirmedReservations = getConfirmedReservations(reservations, currentMember.id);
+  const totalFee = calculateTotalFee(confirmedReservations);
 
-  console.log("========== 멤버 요약 ==========");
-  console.log("이름     : " + currentMember.name);
-  console.log("등급     : " + currentMember.grade);
-  console.log("포인트   : " + currentMember.points + "P");
-  console.log("누적사용 : " + currentMember.totalUsageHours + "시간  /  " + totalFee.toLocaleString() + "원");
-  console.log("확정예약 : " + confirmed.length + "건");
-  for (let j = 0; j < confirmed.length; j++) {
-    let r = confirmed[j];
+  console.log(`========== 멤버 요약 ==========`);
+  console.log(`이름     : ${currentMember.name}`);
+  console.log(`등급     : ${currentMember.grade}`);
+  console.log(`포인트   : ${currentMember.points}P`);
+  console.log(`누적사용 : ${currentMember.totalUsageHours}시간  /  ${totalFee.toLocaleString()}원`);
+  console.log(`확정예약 : ${confirmedReservations.length}건`);
+
+  for (let j = 0; j < confirmedReservations.length; j++) {
+    let reservation = confirmedReservations[j];
     console.log(
-      "  [" +
-        r.roomName +
-        "] " +
-        r.date +
-        "  " +
-        r.startHour +
-        "시 (" +
-        r.duration +
-        "시간)  " +
-        r.fee.toLocaleString() +
-        "원",
+      `  [${reservation.roomName}] ${reservation.date}  ${reservation.startHour}시 (${reservation.duration}시간)  ${reservation.fee.toLocaleString()}원`,
     );
   }
   console.log("===============================");
@@ -284,7 +327,6 @@ registerMember("M001", "조앤", 100);
 
 let res1 = makeReservation("ROOM-A", "2026-03-15", 10, 2, 3);
 let res2 = makeReservation("ROOM-B", "2026-03-16", 14, 2, 6);
-// let res2 = makeReservation("ROOM-A", "2026-03-16", 14, 2, 6);
 
 printMemberSummary();
 
