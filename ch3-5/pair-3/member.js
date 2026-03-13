@@ -1,5 +1,4 @@
 import { gradeConfig } from "./constants.js";
-import { printRegisterResult } from "./outputView.js";
 
 // 등록할 멤버 생성 [Calc]
 export function createNewMember(id, name, points) {
