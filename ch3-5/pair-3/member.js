@@ -23,6 +23,7 @@ export function getGradeFromHours(hours) {
   return "normal";
 }
 
+// 멤버의 포인트, 총 사용 시간, 등급 업데이트 [Calc]
 export function updateMembershipStatus(member, earnedPoints, duration) {
   const result = { ...member };
 
