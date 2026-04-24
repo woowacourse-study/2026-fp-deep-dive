@@ -4,13 +4,13 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "test:pair1": "TARGET_FILE=ch3-5/pair-1/index.js jest",
-    "test:pair2": "TARGET_FILE=ch3-5/pair-2/index.js jest",
-    "test:pair3": "TARGET_FILE=ch3-5/pair-3/index.js jest",
-    "start-pair1": "node ch3-5/pair-1/index.js",
-    "start-pair2": "node ch3-5/pair-2/index.js",
-    "start-pair3": "node ch3-5/pair-3/index.js",
-    "start-base": "node ch3-5/base-code.js"
+    "test:pair1": "TARGET_FILE=part1/practice/ch3-5/pair-1/index.js jest",
+    "test:pair2": "TARGET_FILE=part1/practice/ch3-5/pair-2/index.js jest",
+    "test:pair3": "TARGET_FILE=part1/practice/ch3-5/pair-3/index.js jest",
+    "start-pair1": "node part1/practice/ch3-5/pair-1/index.js",
+    "start-pair2": "node part1/practice/ch3-5/pair-2/index.js",
+    "start-pair3": "node part1/practice/ch3-5/pair-3/index.js",
+    "start-base": "node part1/practice/ch3-5/base-code.js"
   },
   "keywords": [],
   "author": "",
