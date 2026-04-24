@@ -1,5 +1,59 @@
 # 📚 스터디룸 예약 시스템 리팩토링
 
+## 👥 페어 구성
+
+|     팀     |                                                          팀원                                                           |                                                           팀원                                                            |
+| :--------: | :---------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------: |
+| **Pair 1** |   <a href="https://github.com/JetProc"><img src="https://github.com/JetProc.png" width="80"><br><sub>파라디</sub></a>   |   <a href="https://github.com/lee-eojin"><img src="https://github.com/lee-eojin.png" width="80"><br><sub>레스</sub></a>   |
+| **Pair 2** | <a href="https://github.com/bigcloud07"><img src="https://github.com/bigcloud07.png" width="80"><br><sub>루멘</sub></a> | <a href="https://github.com/bel1c10ud"><img src="https://github.com/bel1c10ud.png" width="80"><br><sub>클라우디</sub></a> |
+| **Pair 3** |    <a href="https://github.com/vlmbuyd"><img src="https://github.com/vlmbuyd.png" width="80"><br><sub>유월</sub></a>    |   <a href="https://github.com/geongyu09"><img src="https://github.com/geongyu09.png" width="80"><br><sub>도넛</sub></a>   |
+
+## 🚀 설치 및 실행
+
+```bash
+npm install
+```
+
+| 명령어 | 설명 |
+| --- | --- |
+| `npm run start-base` | 원본 코드 실행 |
+| `npm run start-pair1` | pair-1 결과물 실행 |
+| `npm run start-pair2` | pair-2 결과물 실행 |
+| `npm run start-pair3` | pair-3 결과물 실행 |
+
+## 🔄 작업 워크플로우 (Fork & PR)
+
+1. **Clone**: 스터디 공통 레포지토리를 로컬 환경으로 가져옵니다.
+
+   ```bash
+   git clone https://github.com/[본인아이디]/2026-FP-DEEP-DIVE.git
+   ```
+
+2. **Branch 생성 및 이동**: 본인 페어의 작업 브랜치를 생성합니다.
+
+   ```bash
+   git checkout -b part1/practice/pair-1
+   ```
+
+3. **작업 진행**: `base-code.js`를 본인 페어 디렉토리(e.g. `pair-1/index.js`)로 복사한 뒤 리팩토링합니다.
+
+   (❗️주의: 병합 충돌 방지를 위해 **본인 페어 디렉토리 외부 파일은 절대 수정하지 않습니다**)
+
+4. **Commit & Push**: 코드 및 `pair-N/README.md` 작성 완료 후 Push합니다.
+
+5. **Pull Request**: 본인 브랜치에서 `main` 브랜치로 PR을 생성합니다.
+
+6. **Code Review & Merge**: 함께 코드 리뷰 후 아래 승인 요건 충족 시 merge합니다.
+
+✅ **PR 및 코드 리뷰 규칙**
+
+- PR 제출: 각 페어의 대표가 페어당 1개의 PR을 제출합니다.
+- 코드 리뷰: 스터디원 누구나 모든 PR에 자유롭게 의견과 리뷰를 남길 수 있습니다.
+- 승인(approve) 권한: 각 페어의 페어장만 approve할 수 있습니다.
+- merge 조건: 본인 페어를 제외한 나머지 두 페어장의 approve를 모두 받아야 합니다.
+
+---
+
 ## 문제 설명
 
 `base-code.js`는 우테코 크루들이 스터디룸을 예약하고 관리하는 시스템입니다.
